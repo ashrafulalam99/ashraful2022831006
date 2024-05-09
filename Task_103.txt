@@ -1,0 +1,196 @@
+#include<stdio.h>
+
+#include<SDL2/SDL.h>
+
+#include<math.h>
+
+int SCREEN_WIDTH = 640;
+
+int SCREEN_HEIGHT = 640;
+
+SDL_Window* window = NULL;
+
+SDL_Renderer* renderer = NULL;
+
+bool game_running = false;
+
+int rad1 = 80;
+
+int cen_x1 = -rad1;
+
+int cen_y1 = SCREEN_HEIGHT/2;
+
+int rad2 = 20;
+
+int cen_x2 = SCREEN_WIDTH/2;
+
+int cen_y2 = rad2;
+
+bool initialize_window()
+{
+    if(SDL_Init(SDL_INIT_VIDEO)!=0)
+    {
+        printf("ERROR INITIALIZING SDL!");
+        return false;
+    }
+
+    window=SDL_CreateWindow("MADE BY ASHRAFUL", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, SCREEN_WIDTH , SCREEN_HEIGHT, 0);
+    
+    if(!window) 
+    {
+         return false;
+    }
+    renderer=SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
+    if(!renderer)
+    {
+        return false;
+    }
+
+    return true;
+}
+
+void key_input()
+{
+    SDL_Event event;
+    if (SDL_PollEvent(&event))
+    {
+        if(event.type == SDL_KEYDOWN)
+        {
+            if(SDLK_RIGHT==event.key.keysym.sym)
+            {
+                if(cen_x2 <= 615)
+                {
+                    cen_x2 += 5;
+                }
+            }
+
+            else if(SDLK_LEFT==event.key.keysym.sym)
+            {
+                if(cen_x2 >= 25)
+                {
+                    cen_x2 -= 5;
+                }
+            }
+
+            else if(SDLK_UP==event.key.keysym.sym)
+            {
+                if(cen_y2 >= 25)
+                {
+                    cen_y2 -= 5;
+                }
+            }
+
+            else if(SDLK_DOWN==event.key.keysym.sym)
+            {
+                if(cen_y2 <= 615)
+                {
+                    cen_y2 += 5;
+                }
+            }
+        }
+
+        else if (event.type == SDL_QUIT)
+        {
+            game_running = false;
+        }
+    }
+}
+
+void Circle(SDL_Renderer* renderer, int cenx, int ceny, int rad)
+{
+    for (int x = -rad; x <= rad; x++)
+    {
+        for (int y = -rad; y <= rad; y++) 
+        {
+            if (x * x + y * y <= rad * rad) 
+            {
+                SDL_RenderDrawPoint(renderer, cenx + x, ceny + y);
+            }
+        }
+    }
+}
+
+void moving()
+{
+    cen_x1 +=2;
+
+    if(cen_x1 - rad1 >= SCREEN_WIDTH)
+
+    cen_x1 = -rad1;
+
+    SDL_RenderClear(renderer);
+
+    SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
+
+    SDL_RenderClear(renderer);
+    
+    SDL_SetRenderDrawColor(renderer,0,0,0,0);
+}
+void drawing()
+{
+    Circle(renderer, cen_x1, cen_y1, rad1);
+
+    SDL_RenderPresent(renderer);
+
+    Circle(renderer, cen_x2, cen_y2, rad2);
+
+    SDL_RenderPresent(renderer);
+}
+void collision()
+{
+    
+    int displacement = sqrt((cen_x1-cen_x2) * (cen_x1 - cen_x2) + (cen_y1-cen_y2) * (cen_y1-cen_y2));
+    
+    if(displacement <= rad1 + rad2)
+    {
+        SDL_Rect r;
+        r.x = 0;
+
+        r.y = 0;
+
+        r.w = SCREEN_WIDTH;
+
+        r.h = SCREEN_HEIGHT;
+
+        SDL_RenderClear(renderer);
+
+        SDL_SetRenderDrawColor(renderer, 0,100, 100, 255);
+
+        SDL_RenderClear(renderer);
+
+        SDL_SetRenderDrawColor(renderer, 200,255, 25, 255);
+
+        SDL_RenderDrawRect(renderer,&r);
+
+        SDL_RenderPresent(renderer);
+    }
+}
+
+void closeWindow()
+{
+    SDL_DestroyRenderer(renderer);
+
+    SDL_DestroyWindow(window);
+
+    SDL_Quit();
+}
+
+int main(int argc, char *argv[])
+{
+    game_running=initialize_window();
+
+    while(game_running!=false)
+    { 
+        key_input();
+
+        moving();
+
+        drawing();
+        
+        collision();
+    } 
+
+   closeWindow();   
+
+  return 0;
+}
